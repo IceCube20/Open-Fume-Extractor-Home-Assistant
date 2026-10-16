@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+dist/
+tests/artifacts/
+.DS_Store
+*.log
+*.pem
+*.key
