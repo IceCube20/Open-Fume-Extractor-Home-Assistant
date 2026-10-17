@@ -500,6 +500,26 @@ class ModelTests(unittest.TestCase):
                                            "jbc_usb_port_count": 1, "jbc_usb_ports": [port_flags], **station_flags})
                 self.assertEqual(specs[MODULE + ":jbc_connect_mode"].value, "MONITOR")
 
+    def test_display_backlight_settings_status_and_legacy_firmware(self):
+        module = {"type": 6, "telemetry_valid": True, "display_backlight_supported": True,
+                  "display_backlight_mode": 1, "display_backlight_timeout_min": 17, "display_backlight_on": False}
+        specs = self.module_specs(module)
+        mode = specs[MODULE + ":backlight_mode"]
+        self.assertEqual(mode.value, "Only in power saving")
+        self.assertEqual(mode.option_values, ("0", "1", "2"))
+        self.assertEqual(mode.argument, "backlight_mode")
+        self.assertEqual(mode.icon, "mdi:lightbulb-auto-outline")
+        delay = specs[MODULE + ":backlight_timeout"]
+        self.assertEqual((delay.value, delay.minimum, delay.maximum, delay.unit), (17, 1, 60, "min"))
+        self.assertEqual(delay.argument, "backlight_timeout")
+        self.assertFalse(specs[MODULE + ":backlight_on"].value)
+        self.assertTrue(specs[MODULE + ":backlight_on"].valid)
+        module["online"] = False
+        self.assertFalse(self.module_specs(module)[MODULE + ":backlight_on"].valid)
+        module["display_backlight_supported"] = False
+        specs = self.module_specs(module)
+        self.assertFalse(any(key.startswith(MODULE + ":backlight_") for key in specs))
+
     def test_display_settings_map_correct_handler_arguments(self):
         specs = self.module_specs({"type": 6, "telemetry_valid": True, "display_language": 1,
                                    "display_theme": 0, "display_screensaver_min": 5})

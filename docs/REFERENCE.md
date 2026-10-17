@@ -1,7 +1,7 @@
 # Open Fume Extractor for Home Assistant
 
 An initial local, broker-free custom integration. Master firmware **2.0.31 or
-later** is required; use **2.0.53+** with **0.1.0rc22** for the aligned MQTT/native
+later** is required; use **2.0.53+** with **0.1.0rc23** for the aligned MQTT/native
 catalogue, station parameter controls and developer-only diagnostics. No module firmware changes are required.
 This version is ready for a Home Assistant test installation, not a claim of
 certification or full feature parity with the existing MQTT discovery.
@@ -106,7 +106,7 @@ The independently reported filter condition is not changed or hidden.
 The observed `r001`/`r000` commands have an unconfirmed purpose and are not
 automatically sent during connection.
 
-Replace the component folder with **0.1.0rc22** and restart Home Assistant. Do not
+Replace the component folder with **0.1.0rc23** and restart Home Assistant. Do not
 delete and recreate the integration: existing hardware-based entity IDs remain
 unchanged. This update fixes unavailable entities caused by a collision with HA's
 reserved `platform` attribute and removes the deprecated device-link parameter.
@@ -315,7 +315,7 @@ removed or no-longer-supported entities are excluded. Diagnostics are optional.
 
 1. After updating the integration and restarting HA, open **Settings > Dashboards
    > Resources** (enable Advanced Mode in your user profile if necessary).
-2. Add `/open_fume_extractor/ofe-cards.js?v=0.1.0rc22` as a **JavaScript module**.
+2. Add `/open_fume_extractor/ofe-cards.js?v=0.1.0rc23` as a **JavaScript module**.
 3. Reload the browser. Edit your dashboard, add a card and choose **OFE Overview**,
    **OFE Master** or **OFE Module**. The graphical editor selects master/module
    and controls whether diagnostics and summary values are shown. Update the
@@ -372,6 +372,27 @@ time; bus polling, network conditions and update/discovery activity still matter
 
 Continuous is a runtime setting: Home Assistant does not restore it on startup.
 The integration sends only deliberately changed settings, not periodic writes.
+
+## Automatic display backlight shutdown
+
+Master 2.0.54 and updated display firmware expose the same per-display settings in
+the master module card, the display System page, MQTT discovery and this integration:
+
+- **Backlight off**: Off (disabled), Only in power saving, or Always.
+- **Backlight delay**: 1 to 60 minutes since the last touch; default 5 minutes.
+- **Backlight**: read-only indication of whether the backlight is on.
+
+Automatic shutdown is disabled by default. It is separate from screensaver
+dimming and does not put the display or its network/bus connection to sleep.
+The first touch wakes the backlight without pressing a control. Firmware updates
+and connection setup keep it awake. Changing brightness or the shutdown settings
+restarts the timer; ordinary master status updates do not. Normal brightness is
+preserved. Settings are stored on the display only when changed.
+
+Required display versions: 320x480 1.4.4RC, 800x480 1.4.11RC, and ST7796 320x480
+1.0.14RC or newer. Older display firmware retains its existing controls but does
+not expose these additional entities. Update both the master and the display;
+updating only the Home Assistant integration cannot add the firmware feature.
 
 ## Security and migration from MQTT
 

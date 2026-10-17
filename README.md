@@ -70,7 +70,7 @@ After installation and restart:
 2. Add the URL below with type **JavaScript module**:
 
    ```text
-   /open_fume_extractor/ofe-cards.js?v=0.1.0rc22
+   /open_fume_extractor/ofe-cards.js?v=0.1.0rc23
    ```
 
 3. Reload your browser, edit a dashboard and choose an OFE card.
@@ -104,7 +104,7 @@ in a running HA installation. Cross-firmware MQTT/API contract tests remain in
 the main firmware repository. Integration runtime code is self-contained under
 `custom_components/open_fume_extractor/`.
 
-Tags must match the integration manifest version, for example `v0.1.0rc22`.
+Tags must match the integration manifest version, for example `v0.1.0rc23`.
 CI tests the component and HACS layout before publishing a manual-install ZIP.
 No firmware binaries, credentials or signing keys belong in this repository.
 

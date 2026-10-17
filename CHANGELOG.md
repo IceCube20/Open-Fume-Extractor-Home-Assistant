@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0rc23
+
+- Add per-display automatic backlight shutdown mode, a 1-60 minute delay and
+  a read-only backlight status, matching MQTT names and icons.
+- Require Master 2.0.54 and updated display firmware for the new controls;
+  older display firmware keeps its existing entities without unsupported controls.
+- Preserve existing entity IDs, polling, screensaver and normal brightness behavior.
+
+
 ## 0.1.0rc22
 
 - Publish the native integration and bundled dashboard cards in their own
