@@ -63,20 +63,31 @@ Do not create a second nested `custom_components/custom_components` directory.
 The integration includes **OFE Overview**, **OFE Master**, **OFE Module** and
 alarm cards, with module controls and animated OFE/EVT indicators.
 
-After installation and restart:
+From **0.1.0rc25**, the integration automatically registers the bundled
+**JavaScript module** when Lovelace resources use normal UI/storage mode.
+Existing OFE resource entries are updated to the new version and duplicates
+of that exact local bundle are removed. No dashboard layouts or entity IDs
+are changed. No separate frontend repository or card download is needed.
 
-1. Open **Settings > Dashboards > Resources**. Enable Advanced Mode in your
-   user profile if the Resources menu is not visible.
-2. Add the URL below with type **JavaScript module**:
+After installation or an update, **restart Home Assistant and fully reload the
+browser/app**. Then edit a dashboard and choose an OFE card. Already open pages
+cannot replace registered JavaScript custom elements without a full reload.
 
-   ```text
-   /open_fume_extractor/ofe-cards.js?v=0.1.0rc23
-   ```
+For YAML-managed resources, add this **once** yourself (your YAML is never edited):
 
-3. Reload your browser, edit a dashboard and choose an OFE card.
+```yaml
+lovelace:
+  resource_mode: yaml
+  resources:
+    - url: /open_fume_extractor/ofe-cards.js
+      type: module
+```
 
-Update the existing resource URL when upgrading instead of adding a duplicate.
-No separate frontend repository or card download is needed.
+Use the unversioned URL there and fully reload the browser after updates.
+If automatic registration fails, a manual storage-mode fallback is available
+under **Settings > Dashboards > Resources** (Advanced Mode): add/update
+`/open_fume_extractor/ofe-cards.js?v=0.1.0rc25` as a JavaScript module, not a second
+duplicate entry. Check HA logs for the underlying resource-registration error.
 
 ## Documentation and support
 
@@ -104,7 +115,7 @@ in a running HA installation. Cross-firmware MQTT/API contract tests remain in
 the main firmware repository. Integration runtime code is self-contained under
 `custom_components/open_fume_extractor/`.
 
-Tags must match the integration manifest version, for example `v0.1.0rc23`.
+Tags must match the integration manifest version, for example `v0.1.0rc25`.
 CI tests the component and HACS layout before publishing a manual-install ZIP.
 No firmware binaries, credentials or signing keys belong in this repository.
 

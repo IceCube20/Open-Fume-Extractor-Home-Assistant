@@ -1,7 +1,7 @@
 # Open Fume Extractor for Home Assistant
 
 An initial local, broker-free custom integration. Master firmware **2.0.31 or
-later** is required; use **2.0.53+** with **0.1.0rc23** for the aligned MQTT/native
+later** is required; use **2.0.53+** with **0.1.0rc24** for the aligned MQTT/native
 catalogue, station parameter controls and developer-only diagnostics. No module firmware changes are required.
 This version is ready for a Home Assistant test installation, not a claim of
 certification or full feature parity with the existing MQTT discovery.
@@ -106,7 +106,7 @@ The independently reported filter condition is not changed or hidden.
 The observed `r001`/`r000` commands have an unconfirmed purpose and are not
 automatically sent during connection.
 
-Replace the component folder with **0.1.0rc23** and restart Home Assistant. Do not
+Replace the component folder with **0.1.0rc24** and restart Home Assistant. Do not
 delete and recreate the integration: existing hardware-based entity IDs remain
 unchanged. This update fixes unavailable entities caused by a collision with HA's
 reserved `platform` attribute and removes the deprecated device-link parameter.
@@ -313,13 +313,20 @@ groups controls, filters and JBC ports. Cards follow hardware identities and
 aliases rather than hard-coded entity IDs. Offline devices remain visible;
 removed or no-longer-supported entities are excluded. Diagnostics are optional.
 
-1. After updating the integration and restarting HA, open **Settings > Dashboards
-   > Resources** (enable Advanced Mode in your user profile if necessary).
-2. Add `/open_fume_extractor/ofe-cards.js?v=0.1.0rc23` as a **JavaScript module**.
-3. Reload the browser. Edit your dashboard, add a card and choose **OFE Overview**,
-   **OFE Master** or **OFE Module**. The graphical editor selects master/module
-   and controls whether diagnostics and summary values are shown. Update the
-   existing resource URL instead of adding the same resource a second time.
+From **0.1.0rc25**, UI/storage-mode Lovelace resources are registered and
+version-updated automatically when the integration starts. Existing OFE entries
+are migrated and duplicate entries for this exact local bundle are removed.
+After updating, restart HA and fully reload the browser/app. Then edit your
+dashboard, add a card and choose **OFE Overview**, **OFE Master** or **OFE Module**.
+The graphical editor selects master/module and controls diagnostics and summaries.
+
+YAML-managed resources remain user-owned. Add the unversioned
+`/open_fume_extractor/ofe-cards.js` once with `type: module`, then fully reload
+the browser after updates. No automatic YAML edits or dashboard rewrites occur.
+If automatic storage registration fails, the manual fallback is
+`/open_fume_extractor/ofe-cards.js?v=0.1.0rc25` as a **JavaScript module** under
+**Settings > Dashboards > Resources**. Update an existing entry, do not add a
+second copy. Entity setup continues even if resource registration fails.
 
 For a manual card, an overview needs only:
 
@@ -344,7 +351,8 @@ Use your actual UIDs, not these example values. Optional `title` changes a card'
 heading. German/English section titles follow the HA frontend language; native
 control rendering follows HA. Built-in entity labels follow the master language;
 module/profile aliases are retained. Your existing dashboards
-and resources are not automatically overwritten.
+are not automatically overwritten. Only this integration's local card-resource
+registration is managed automatically in storage mode.
 
 For existing **MQTT** heap discovery warnings, separately rebuild/flash master
 **2.0.32**. Master and module heap discovery now uses `KiB`, matching its 1024-byte
@@ -375,22 +383,24 @@ The integration sends only deliberately changed settings, not periodic writes.
 
 ## Automatic display backlight shutdown
 
-Master 2.0.54 and updated display firmware expose the same per-display settings in
+Master 2.0.55 and updated display firmware expose the same per-display settings in
 the master module card, the display System page, MQTT discovery and this integration:
 
 - **Backlight off**: Off (disabled), Only in power saving, or Always.
-- **Backlight delay**: 1 to 60 minutes since the last touch; default 5 minutes.
+- **Backlight delay**: dropdown with 1 to 60 minutes since the last touch; default 5 minutes.
 - **Backlight**: read-only indication of whether the backlight is on.
 
 Automatic shutdown is disabled by default. It is separate from screensaver
 dimming and does not put the display or its network/bus connection to sleep.
-The first touch wakes the backlight without pressing a control. Firmware updates
+When the backlight is off, the first touch only switches the light on; the screensaver
+stays visible. Release and touch again to leave the screensaver. Both wake touches
+are consumed without pressing a control. Firmware updates
 and connection setup keep it awake. Changing brightness or the shutdown settings
 restarts the timer; ordinary master status updates do not. Normal brightness is
 preserved. Settings are stored on the display only when changed.
 
-Required display versions: 320x480 1.4.4RC, 800x480 1.4.11RC, and ST7796 320x480
-1.0.14RC or newer. Older display firmware retains its existing controls but does
+Required display versions: 320x480 1.4.5RC, 800x480 1.4.12RC, and ST7796 320x480
+1.0.15RC or newer. Older display firmware retains its existing controls but does
 not expose these additional entities. Update both the master and the display;
 updating only the Home Assistant integration cannot add the firmware feature.
 

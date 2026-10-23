@@ -383,6 +383,10 @@ def mqtt_presentation(spec: Spec, state: dict, master_uid: str) -> None:
             spec.name = (" ".join(prefix) + " " if prefix else "") + port_names[leaf][0 if german else 1]
     elif key.startswith("jbc_tc"):
         spec.name = key.split("_")[1].upper() + (" Solltemperatur" if german else " Set temperature") if key.endswith("selected_temp") else key.split("_")[1].upper() + (" Temperatur" if german else " Temperature")
+    if key == "backlight_mode" and german:
+        selected = spec.options.index(spec.value) if spec.value in spec.options else None
+        spec.options = ("Aus", "Nur im Energiesparmodus", "Immer")
+        spec.value = spec.options[selected] if selected is not None else None
     if key == "level" and german:
         selected = spec.option_values[spec.options.index(spec.value)] if spec.value in spec.options else None
         spec.options = ("Hoch", "Mittel", "Niedrig", "Benutzer")
@@ -722,9 +726,12 @@ def module_specs(uid: str, module: dict, online: bool, definitions: list):
             value = options[mode] if isinstance(mode, int) and 0 <= mode < len(options) else None
             yield Spec(uid, "backlight_mode", "select", "Backlight off", value, valid,
                        action="display", argument="backlight_mode", options=options, option_values=("0", "1", "2"))
-            yield Spec(uid, "backlight_timeout", "number", "Backlight delay",
-                       module.get("display_backlight_timeout_min"), valid, "min",
-                       action="display", argument="backlight_timeout", minimum=1, maximum=60, number_mode="box")
+            minutes = module.get("display_backlight_timeout_min")
+            yield Spec(uid, "backlight_timeout", "select", "Backlight delay",
+                       f"{minutes} min" if isinstance(minutes, int) and 1 <= minutes <= 60 else None, valid,
+                       action="display", argument="backlight_timeout",
+                       options=tuple(f"{i} min" for i in range(1, 61)),
+                       option_values=tuple(str(i) for i in range(1, 61)))
             yield Spec(uid, "backlight_on", "binary_sensor", "Backlight",
                        module.get("display_backlight_on"), valid=valid)
     if typ == 5:

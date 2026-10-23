@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.0rc25
+
+- Automatically register the bundled dashboard module in Lovelace storage mode.
+- Update its versioned resource URL during integration setup after upgrades;
+  preserve an existing resource ID and remove only duplicates of the same OFE URL.
+- Leave YAML-managed resources, other cards and dashboard layouts untouched.
+- Resource-registration errors do not prevent entity setup. Restart HA after
+  installation/update and fully reload the browser/app to use the new JavaScript.
+
+## 0.1.0rc24
+
+- Localize automatic display backlight modes in German and English.
+- Replace the numeric delay with a 1-60 minute dropdown, matching MQTT and the master.
+- Keep unsupported backlight entities hidden on older display firmware.
+- Document two-touch wake: first light, then leave the screensaver after release.
+
+
 ## 0.1.0rc23
 
 - Add per-display automatic backlight shutdown mode, a 1-60 minute delay and

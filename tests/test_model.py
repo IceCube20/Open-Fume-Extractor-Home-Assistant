@@ -510,7 +510,9 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(mode.argument, "backlight_mode")
         self.assertEqual(mode.icon, "mdi:lightbulb-auto-outline")
         delay = specs[MODULE + ":backlight_timeout"]
-        self.assertEqual((delay.value, delay.minimum, delay.maximum, delay.unit), (17, 1, 60, "min"))
+        self.assertEqual((delay.platform, delay.value, delay.unit), ("select", "17 min", None))
+        self.assertEqual(delay.options, tuple(f"{i} min" for i in range(1, 61)))
+        self.assertEqual(delay.option_values, tuple(str(i) for i in range(1, 61)))
         self.assertEqual(delay.argument, "backlight_timeout")
         self.assertFalse(specs[MODULE + ":backlight_on"].value)
         self.assertTrue(specs[MODULE + ":backlight_on"].valid)
@@ -519,6 +521,26 @@ class ModelTests(unittest.TestCase):
         module["display_backlight_supported"] = False
         specs = self.module_specs(module)
         self.assertFalse(any(key.startswith(MODULE + ":backlight_") for key in specs))
+
+    def test_display_backlight_localized_choices_keep_wire_values(self):
+        module = {"uid": MODULE, "type": 6, "online": True, "telemetry_valid": True,
+                  "display_backlight_supported": True, "display_backlight_timeout_min": 60}
+        for lang, options in (("de", ("Aus", "Nur im Energiesparmodus", "Immer")),
+                              ("en", ("Off", "Only in power saving", "Always"))):
+            for value in range(3):
+                module["display_backlight_mode"] = value
+                specs = model.build_specs(MASTER, {"ui_lang": lang, "modules": [module]}, {})
+                mode = specs[MODULE + ":backlight_mode"]
+                self.assertEqual(mode.options, options)
+                self.assertEqual(mode.value, options[value])
+                self.assertEqual(mode.option_values, ("0", "1", "2"))
+                delay = specs[MODULE + ":backlight_timeout"]
+                self.assertEqual(delay.value, "60 min")
+                self.assertEqual(delay.option_values[-1], "60")
+        for supported in (False, None):
+            module["display_backlight_supported"] = supported
+            specs = model.build_specs(MASTER, {"modules": [module]}, {})
+            self.assertFalse(any(s.key.startswith("backlight_") for s in specs.values()))
 
     def test_display_settings_map_correct_handler_arguments(self):
         specs = self.module_specs({"type": 6, "telemetry_valid": True, "display_language": 1,

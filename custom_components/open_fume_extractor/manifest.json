@@ -1,7 +1,8 @@
 {
   "domain": "open_fume_extractor",
   "name": "Open Fume Extractor",
-  "version": "0.1.0rc23",
+  "version": "0.1.0rc25",
+  "after_dependencies": ["lovelace"],
   "config_flow": true,
   "integration_type": "hub",
   "iot_class": "local_polling",
