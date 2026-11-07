@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 dist/
 tests/artifacts/
+node_modules/
 .DS_Store
 *.log
 *.pem
