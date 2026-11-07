@@ -17,6 +17,7 @@ class PackagingTests(unittest.TestCase):
                          ["open_fume_extractor"])
         hacs = json.loads((ROOT / "hacs.json").read_text())
         self.assertEqual(hacs["name"], "Open Fume Extractor")
+        self.assertIs(hacs.get("hide_default_branch"), True)
         self.assertFalse(hacs.get("content_in_root", False))
         self.assertFalse(hacs.get("zip_release", False))
         self.assertTrue((COMPONENT / "brand/icon.png").is_file())
