@@ -39,7 +39,7 @@ Manual HACS steps:
 4. Search HACS for **Open Fume Extractor** and download it.
 5. Enable pre-release/beta versions for this repository if needed. Under
    **Need a different version?**, choose a numbered RC release, such as
-   **v0.1.29rc1** (release title **0.1.29RC**). The `main` development branch is
+   **v0.1.30rc1** (release title **0.1.30RC**). The `main` development branch is
    hidden from the HACS download
    selector; it is not the recommended installation source.
 6. **Restart Home Assistant**, not just the integration.
@@ -76,7 +76,7 @@ can then appear as an update even though the integration code is unchanged.
 
 In HACS, open this repository and select **three-dot menu > Update information**,
 then **Redownload > Need a different version?**. Enable pre-release/beta versions
-if needed and choose **v0.1.29rc1** (or a newer numbered release). Download it,
+if needed and choose **v0.1.30rc1** (or a newer numbered release). Download it,
 restart Home Assistant and fully reload the browser/app. Do not remove the
 integration, devices or entities.
 
@@ -134,7 +134,7 @@ lovelace:
 Use the unversioned URL there and fully reload the browser after updates.
 If automatic registration fails, a manual storage-mode fallback is available
 under **Settings > Dashboards > Resources** (Advanced Mode): add/update
-`/open_fume_extractor/ofe-cards.js?v=0.1.29rc1` as a JavaScript module, not a second
+`/open_fume_extractor/ofe-cards.js?v=0.1.30rc1` as a JavaScript module, not a second
 duplicate entry. Check HA logs for the underlying resource-registration error.
 
 ## Automatic dashboard
@@ -156,6 +156,13 @@ stay visible with their connection state. Multiple masters get separate tabs.
 Only modules and entities provided by the native integration are included; MQTT
 devices are not duplicated. No additional master polling is started.
 
+From **0.1.30RC**, the automatic dashboard uses up to **four columns** on a
+laptop/desktop. It reduces to three, two or one as the available space narrows;
+the Home Assistant sidebar is taken into account. The **Maximum columns** setting
+in the dashboard editor limits the grid to one through four columns. Overview
+cards also offer this setting, while existing cards keep their automatic layout
+unless a limit is selected. Resizing does not recreate controls or add polling.
+
 For a YAML-managed dashboard, use this dashboard configuration:
 
 ```yaml
@@ -164,6 +171,7 @@ strategy:
   title: Open Fume Extractor
   show_summary: true
   show_diagnostics: false
+  columns: 4
 ```
 
 The optional `master_uid` setting restricts the dashboard to one master. It uses
@@ -207,8 +215,8 @@ npx playwright install chromium
 OFE_MDI_MODULE=node_modules/@mdi/js/mdi.js node tools/test_cards.cjs
 ```
 
-Tags must match the integration manifest version, for example `v0.1.29rc1`.
-The human-readable release title is **0.1.29RC**; machine-readable versions retain
+Tags must match the integration manifest version, for example `v0.1.30rc1`.
+The human-readable release title is **0.1.30RC**; machine-readable versions retain
 the RC number so Home Assistant and HACS can compare updates reliably.
 CI tests the component and HACS layout before publishing a manual-install ZIP.
 No firmware binaries, credentials or signing keys belong in this repository.

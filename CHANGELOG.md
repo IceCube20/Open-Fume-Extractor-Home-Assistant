@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.30RC (0.1.30rc1)
+
+- Default the automatic dashboard to a maximum of four columns, reducing to
+  three, two or one according to the available card width, including HA's sidebar.
+- Add a one-to-four-column limit to the dashboard and overview card editors.
+  Existing overview cards without a column preference keep their automatic grid.
+- Adapt compact headers and summaries to each individual card's width so names, icons and
+  OFE/EVT indicators stay aligned in narrow desktop columns. Controls and live
+  updates are unchanged; resizing does not recreate cards or interrupt focus.
+
 ## 0.1.29RC (0.1.29rc1)
 
 - Add an optional Open Fume Extractor community dashboard strategy. Create the
