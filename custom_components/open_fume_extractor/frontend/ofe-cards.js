@@ -1,20 +1,20 @@
 /* OFE cards delegate all controls to Home Assistant's native entities card. */
-const VERSION = "0.1.30rc1";
+const VERSION = "0.1.31rc4";
 let helpersPromise;
 const words = {
-  en: {master: "Master", module: "Module", overview: "Overview", auto: "Automatic", allMasters: "All masters",
+  en: {master: "MCU", module: "Module", overview: "Overview", auto: "Automatic", allMasters: "All MCUs",
     status: "Status", controls: "Controls", filter: "Filter", diagnostics: "Diagnostics", alarms: "Active alarms",
     thermocouples: "Thermocouples", port: "Port", title: "Title", diagnostic: "Show diagnostics", columns: "Maximum columns",
     summary: "Show summary", online: "Connected", offline: "Disconnected", unknown: "Unknown", unavailable: "Unavailable", on: "On", off: "Off", eco: "Power saving",
     noAlarms: "No active alarms", alarmSensor: "Alarm count sensor (MQTT or native)", chooseAlarm: "Select an alarm count sensor in the card editor.",
-    empty: "No Open Fume Extractor entities found.", chooseMaster: "Select a master in the card editor.",
+    empty: "No Open Fume Extractor entities found.", chooseMaster: "Select an MCU in the card editor.",
     chooseModule: "Select a module in the card editor.", missing: "The selected device is not available."},
-  de: {master: "Master", module: "Modul", overview: "Übersicht", auto: "Automatisch", allMasters: "Alle Master",
+  de: {master: "MCU", module: "Modul", overview: "Übersicht", auto: "Automatisch", allMasters: "Alle MCUs",
     status: "Status", controls: "Bedienung", filter: "Filter", diagnostics: "Diagnose", alarms: "Aktive Alarme",
     thermocouples: "Thermoelemente", port: "Port", title: "Titel", diagnostic: "Diagnose anzeigen", columns: "Maximale Spalten",
     summary: "Zusammenfassung anzeigen", online: "Verbunden", offline: "Getrennt", unknown: "Unbekannt", unavailable: "Nicht verfügbar", on: "Ein", off: "Aus", eco: "Energiesparen",
     noAlarms: "Keine aktiven Alarme", alarmSensor: "Alarm-Anzahl-Sensor (MQTT oder nativ)", chooseAlarm: "Alarm-Anzahl-Sensor im Karteneditor auswählen.",
-    empty: "Keine Open-Fume-Extractor-Entitäten gefunden.", chooseMaster: "Master im Karteneditor auswählen.",
+    empty: "Keine Open-Fume-Extractor-Entitäten gefunden.", chooseMaster: "MCU im Karteneditor auswählen.",
     chooseModule: "Modul im Karteneditor auswählen.", missing: "Das ausgewählte Gerät ist nicht verfügbar."},
 };
 const language = hass => String(hass?.locale?.language || hass?.language || "en").startsWith("de") ? "de" : "en";
@@ -96,13 +96,10 @@ class OfeCard extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
     this.shadowRoot.innerHTML = `<style>
-      :host{display:block;min-width:0;container-type:inline-size;font-family:var(--paper-font-body1_-_font-family,inherit);letter-spacing:0}
+      :host{display:block;width:100%;max-width:100%;min-width:0;container-type:inline-size;font-family:var(--paper-font-body1_-_font-family,inherit);letter-spacing:0}
       *{box-sizing:border-box}.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
       .overview{grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));align-items:start}
       .overview[data-columns]{grid-template-columns:minmax(0,1fr)}
-      @container(min-width:560px){.overview[data-columns="2"],.overview[data-columns="3"],.overview[data-columns="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @container(min-width:820px){.overview[data-columns="3"],.overview[data-columns="4"]{grid-template-columns:repeat(3,minmax(0,1fr))}}
-      @container(min-width:1040px){.overview[data-columns="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}}
       .heading{display:flex;align-items:center;gap:12px;margin:0 0 16px;font-size:18px;font-weight:600;line-height:1.4}
       .heading img{width:36px;height:36px;object-fit:contain;flex-shrink:0}.heading span{min-width:0;overflow-wrap:anywhere}
       .message{padding:16px;color:var(--secondary-text-color)}
@@ -170,6 +167,7 @@ class OfeCard extends HTMLElement {
     this._children = [];
     this._panels = [];
     this._generation = 0;
+    this._resize = () => this._updateColumns();
   }
   static getConfigElement() { return document.createElement("ofe-card-editor"); }
   static getStubConfig() { return {show_diagnostics: false, show_summary: true}; }
@@ -177,8 +175,10 @@ class OfeCard extends HTMLElement {
     if (!config?.type || !["custom:ofe-master-card", "custom:ofe-module-card", "custom:ofe-overview-card"].includes(config.type)) {
       throw new Error("Invalid OFE card type");
     }
+    const layoutOnly = this._config && JSON.stringify({...this._config, columns: undefined}) === JSON.stringify({...config, columns: undefined});
     this._config = {...config};
-    this._signature = null;
+    if (!layoutOnly) this._signature = null;
+    this._updateColumns();
     this._schedule();
   }
   set hass(hass) {
@@ -186,7 +186,32 @@ class OfeCard extends HTMLElement {
     for (const card of this._children) card.hass = hass;
     this._schedule();
   }
-  connectedCallback() { this._schedule(); }
+  connectedCallback() {
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver ||= new ResizeObserver(entries => this._updateColumns(entries[0].contentRect.width));
+      this._resizeObserver.observe(this);
+    } else window.addEventListener("resize", this._resize);
+    this._updateColumns();
+    this._schedule();
+  }
+  disconnectedCallback() {
+    this._resizeObserver?.disconnect();
+    window.removeEventListener("resize", this._resize);
+  }
+  _updateColumns(width = this.getBoundingClientRect().width) {
+    const grid = this.shadowRoot.querySelector(".cards");
+    const overview = this._config?.type === "custom:ofe-overview-card";
+    const maximum = overview ? columnCount(this._config.columns) : 0;
+    grid.classList.toggle("overview", overview);
+    if (!maximum) {
+      delete grid.dataset.columns;
+      grid.style.removeProperty("grid-template-columns");
+      return;
+    }
+    const available = width >= 1040 ? 4 : width >= 820 ? 3 : width >= 560 ? 2 : 1;
+    grid.dataset.columns = String(maximum);
+    grid.style.gridTemplateColumns = `repeat(${Math.min(maximum, available)},minmax(0,1fr))`;
+  }
   getCardSize() { return this.offsetHeight ? Math.ceil(this.offsetHeight / 50) : Math.max(3, this._rowCount || 3); }
   getGridOptions() { return {columns: this._config?.type === "custom:ofe-overview-card" ? "full" : 12, min_columns: 6}; }
   _panel(config, uid, rows, helpers) {
@@ -253,9 +278,9 @@ class OfeCard extends HTMLElement {
       ecoBadge.hidden = !connected || !hasValue(eco) || !["on", "true"].includes(eco.state);
       ecoBadge.querySelector("span").textContent = text.eco;
       const transport = attr.ofe_transport || find("transport")?.state, transportBadge = panel.indicators.querySelector(".transport");
-      transportBadge.hidden = !["wifi", "rs485"].includes(transport);
-      transportBadge.querySelector("span").textContent = transport === "wifi" ? "Wi-Fi" : "RS485";
-      transportBadge.querySelector("ha-icon").setAttribute("icon", transport === "wifi" ? "mdi:wifi" : "mdi:serial-port");
+      transportBadge.hidden = !["ethernet", "wifi", "rs485"].includes(transport);
+      transportBadge.querySelector("span").textContent = transport === "ethernet" ? "Ethernet" : transport === "wifi" ? "Wi-Fi" : "RS485";
+      transportBadge.querySelector("ha-icon").setAttribute("icon", transport === "ethernet" ? "mdi:ethernet" : transport === "wifi" ? "mdi:wifi" : "mdi:serial-port");
       panel.model.textContent = attr.ofe_device_model || (panel.uid === attr.ofe_master_uid ? "Open Fume Extractor" : text.module);
       panel.model.hidden = panel.uid === attr.ofe_master_uid || panel.model.textContent === panel.root.querySelector(".device-title").textContent.replace(/^0x[0-9A-F]{2} /i, "");
       for (const led of panel.leds.children) {
@@ -341,10 +366,7 @@ class OfeCard extends HTMLElement {
       this._children = [];
       this._panels = configs.map((config, index) => this._panel(config, ids[index], rows.filter(s => s.attributes.ofe_uid === ids[index]), helpers));
       const container = this.shadowRoot.querySelector(".cards");
-      container.classList.toggle("overview", this._config.type === "custom:ofe-overview-card");
-      const columns = columnCount(this._config.columns);
-      if (columns) container.dataset.columns = String(columns);
-      else delete container.dataset.columns;
+      this._updateColumns();
       container.replaceChildren(...this._panels.map(panel => panel.root));
       this._updatePanels(entities(this._hass).filter(s => s.attributes.ofe_master_uid === master), words[language(this._hass)]);
     }).catch(error => {
@@ -527,9 +549,9 @@ if (!window.customCards.some(card => card.type === "ofe-alarms-card")) {
   window.customCards.push({type: "ofe-alarms-card", name: "OFE Alarms", description: "Alarm list from MQTT or the direct integration", preview: true});
 }
 for (const [name, label, description] of [
-  ["master", "OFE Master", "Extraction status and master controls"],
+  ["master", "OFE MCU", "Extraction status and MCU controls"],
   ["module", "OFE Module", "Module controls, filters and JBC ports"],
-  ["overview", "OFE Overview", "Master and all modules, automatically grouped"],
+  ["overview", "OFE Overview", "MCU and all modules, automatically grouped"],
 ]) {
   if (!customElements.get(`ofe-${name}-card`)) customElements.define(`ofe-${name}-card`, class extends OfeCard {});
   window.customCards ||= [];

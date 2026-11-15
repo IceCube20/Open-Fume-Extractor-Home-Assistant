@@ -164,9 +164,10 @@ class RegistryTests(unittest.TestCase):
         dr.async_get.return_value = backend
         registry.reconcile_devices(None, "MASTER", {"master_fw": "2.0.37RC"}, {
             "MODULE": {"addr": 32, "display_name": "Fan", "type_name": "Fan/IO Pro", "fw": "1.1.70RC"}})
-        backend.async_update_device.assert_any_call("master-device", name="0x01 Open Fume Extractor Master", model="Open Fume Extractor Master")
+        backend.async_update_device.assert_any_call("master-device", name="0x01 Open Fume Extractor MCU", model="Open Fume Extractor MCU")
         backend.async_update_device.assert_any_call("module-device", name="0x20 Fan")
         self.assertEqual(master.name_by_user, "My workshop")
+
 
 
 if __name__ == "__main__":

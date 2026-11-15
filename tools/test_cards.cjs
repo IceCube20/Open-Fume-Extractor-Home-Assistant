@@ -139,7 +139,7 @@ async function testDashboard(page) {
     assert(window.customStrategies.filter(s=>s.type==='ofe-dashboard'&&s.strategyType==='dashboard').length===1,'Dashboard picker registration');
     assert(Strategy.getCreateSuggestions().icon==='mdi:fan','Dashboard icon');
     const editor=Strategy.getConfigElement();editor.setConfig(config);editor.hass=window.hass;
-    assert(editor.shadowRoot.querySelector('[data-field="master_uid"] select option').textContent==='Alle Master','Localized dashboard editor');
+    assert(editor.shadowRoot.querySelector('[data-field="master_uid"] select option').textContent==='Alle MCUs','Localized dashboard editor');
     const columnsSelect=editor.shadowRoot.querySelector('[data-field="columns"] select');
     assert(columnsSelect.value==='4'&&columnsSelect.options.length===4,'Dashboard defaults to four columns');
     let edited;editor.addEventListener('config-changed',event=>{edited=event.detail.config;});
